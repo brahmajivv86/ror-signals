@@ -177,9 +177,9 @@ function startSession() {
     quizIncludeDay = quizToggleDay.checked;
     quizQuestionCount = quizQuestionCountSelect.value;
 
-    const allCardIds = Object.keys(cardsData).sort((a, b) => parseInt(a) - parseInt(b));
+    const allCardIds = Object.keys(cardsData.night).sort((a, b) => parseInt(a) - parseInt(b));
     if (allCardIds.length === 0) {
-        alert('Card data is empty. Please run extract_data.py.');
+        alert('Card data is empty. Please run extract_and_reclassify.py.');
         return;
     }
 
@@ -199,7 +199,9 @@ function startSession() {
         allCardIds.forEach(id => {
             const num = parseInt(id);
             if (num <= 30) {
-                currentQueue.push({ cardId: id, type: 'day' });
+                if (cardsData.day[id]) {
+                    currentQueue.push({ cardId: id, type: 'day' });
+                }
             }
         });
         
@@ -223,9 +225,7 @@ function startSession() {
             // Add day signal if requested and day shape exists (cards 1-30)
             const num = parseInt(id);
             if (quizIncludeDay && num <= 30) {
-                // Ensure card actually has day shapes (non-trivial day signal)
-                const dayText = cardsData[id].day_signal;
-                if (dayText && !dayText.toLowerCase().includes('no day signal') && dayText.toLowerCase() !== 'nil') {
+                if (cardsData.day[id]) {
                     questionPool.push({ cardId: id, type: 'day' });
                 }
             }
@@ -304,10 +304,11 @@ function loadTrainerCard() {
     if (currentQueue.length === 0 || currentIndex >= currentQueue.length) return;
     
     const item = currentQueue[currentIndex];
-    const card = cardsData[item.cardId];
+    const isDay = item.type === 'day';
+    const card = cardsData[item.type][item.cardId];
 
     // Set Front Side Image and Label based on signal type
-    if (item.type === 'day') {
+    if (isDay) {
         trainerImg.src = `images/day/DayImage${item.cardId}.gif`;
         trainerImg.alt = `R.O.R. Day Signal Card #${item.cardId}`;
         trainerCardLabel.textContent = `Day Signal #${item.cardId}`;
@@ -323,11 +324,22 @@ function loadTrainerCard() {
     };
 
     // Populate Back Info Panel
-    trainerBackTitle.textContent = `Signal Reference Details (Card #${item.cardId})`;
+    trainerBackTitle.textContent = `Signal Reference Details (${isDay ? 'Day' : 'Night'} Card #${item.cardId})`;
     trainerInfoIdent.textContent = card.identification || 'No identification text.';
     trainerInfoAction.textContent = card.action || 'No action specified.';
-    trainerInfoDay.textContent = card.day_signal || 'No day signal shape.';
+    trainerInfoDay.textContent = isDay ? (card.lights_displayed || 'No lights specified.') : (card.day_signal || 'No day signal shape.');
     trainerInfoFog.textContent = card.fog_signal || 'No fog signal.';
+
+    // Update label & icon for the third field
+    const dayLabel = trainerInfoDay.previousElementSibling.querySelector('span');
+    const dayIcon = trainerInfoDay.previousElementSibling.querySelector('i');
+    if (isDay) {
+        if (dayLabel) dayLabel.textContent = "Lights Displayed at Night";
+        if (dayIcon) dayIcon.className = "fa-solid fa-moon";
+    } else {
+        if (dayLabel) dayLabel.textContent = "Day Signal";
+        if (dayIcon) dayIcon.className = "fa-solid fa-sun";
+    }
 
     // Manage Prev/Next states (always enabled to support wrapping loop)
     btnTrainerPrev.disabled = false;
@@ -400,7 +412,8 @@ function loadQuizQuestion() {
     if (currentQueue.length === 0 || currentIndex >= currentQueue.length) return;
     
     const item = currentQueue[currentIndex];
-    const card = cardsData[item.cardId];
+    const isDay = item.type === 'day';
+    const card = cardsData[item.type][item.cardId];
     
     quizCardFailed = false;
     quizCurrentStep = 1;
@@ -422,8 +435,8 @@ function loadQuizQuestion() {
         },
         {
             type: 'day_signal',
-            correctText: card.day_signal,
-            prompt: "Step 4 of 4: Identify the Day Signal displayed:"
+            correctText: isDay ? card.lights_displayed : card.day_signal,
+            prompt: isDay ? "Step 4 of 4: Identify the Lights Displayed at Night:" : "Step 4 of 4: Identify the Day Signal displayed:"
         }
     ];
 
@@ -431,13 +444,13 @@ function loadQuizQuestion() {
     if (item.type === 'night') {
         quizQuestionImg.src = `images/night/NightSignal${item.cardId}.gif`;
         quizQuestionImg.alt = `Quiz Night Signal Card #${item.cardId}`;
-        quizCardNumberLabel.textContent = `Signal #${item.cardId}`;
+        quizCardNumberLabel.textContent = `Night Signal #${item.cardId}`;
         quizQuestionTypeBadge.textContent = 'Night Signal';
         quizQuestionTypeBadge.className = 'badge badge-teal';
     } else {
         quizQuestionImg.src = `images/day/DayImage${item.cardId}.gif`;
         quizQuestionImg.alt = `Quiz Day Signal Card #${item.cardId}`;
-        quizCardNumberLabel.textContent = `Signal #${item.cardId}`;
+        quizCardNumberLabel.textContent = `Day Signal #${item.cardId}`;
         quizQuestionTypeBadge.textContent = 'Day Shape';
         quizQuestionTypeBadge.className = 'badge';
     }
@@ -474,10 +487,13 @@ function loadQuizStep() {
         shuffleArray(distractors);
         options.push(...distractors.slice(0, 3));
     } else if (step.type === 'day_signal') {
-        const allCardIds = Object.keys(cardsData);
-        // Distractors are other cards' day signals
+        const item = currentQueue[currentIndex];
+        const isDay = item.type === 'day';
+        const targetDb = isDay ? cardsData.day : cardsData.night;
+        const allCardIds = Object.keys(targetDb);
+        // Distractors are other cards' day signals or lights displayed
         const distractors = allCardIds
-            .map(id => cardsData[id].day_signal)
+            .map(id => isDay ? targetDb[id].lights_displayed : targetDb[id].day_signal)
             .filter(d => d && d !== step.correctText && d.trim() !== "");
         const uniqueDistractors = [...new Set(distractors)];
         shuffleArray(uniqueDistractors);
@@ -562,8 +578,10 @@ function handleQuizStepAnswer(selectedBtn, selectedText, correctAnswer) {
             type: item.type,
             correct: false
         });
-        if (!missedCards.includes(item.cardId)) {
-            missedCards.push(item.cardId);
+        
+        const missedKey = `${item.type}_${item.cardId}`;
+        if (!missedCards.some(m => m.key === missedKey)) {
+            missedCards.push({ cardId: item.cardId, type: item.type, key: missedKey });
         }
         
         // Stop steps and immediately show feedback card after 1000ms delay
@@ -578,13 +596,20 @@ function handleQuizStepAnswer(selectedBtn, selectedText, correctAnswer) {
 
 function showQuizFeedback() {
     const item = currentQueue[currentIndex];
-    const card = cardsData[item.cardId];
+    const card = cardsData[item.type][item.cardId];
+    const isDay = item.type === 'day';
     
     // Fill detailed feedback fields
     feedbackDescIdent.textContent = card.identification || '-';
     feedbackDescAction.textContent = card.action || '-';
-    feedbackDescDay.textContent = card.day_signal || '-';
+    feedbackDescDay.textContent = isDay ? (card.lights_displayed || '-') : (card.day_signal || '-');
     feedbackDescFog.textContent = card.fog_signal || '-';
+    
+    // Update label in feedback panel
+    const feedbackDayLabel = feedbackDescDay.previousElementSibling;
+    if (feedbackDayLabel) {
+        feedbackDayLabel.textContent = isDay ? 'Lights Displayed:' : 'Day Shape:';
+    }
     
     quizFeedbackPanel.classList.remove('hidden');
     
@@ -634,21 +659,23 @@ function showResults() {
             resultsReviewSection.classList.remove('hidden');
             resultsReviewList.innerHTML = '';
             
-            missedCards.forEach(id => {
-                const card = cardsData[id];
-                const item = document.createElement('div');
-                item.className = 'review-card-item';
+            missedCards.forEach(m => {
+                const card = cardsData[m.type][m.cardId];
+                const reviewItem = document.createElement('div');
+                reviewItem.className = 'review-card-item';
                 
-                item.innerHTML = `
+                const imgSrc = m.type === 'day' ? `images/day/DayImage${m.cardId}.gif` : `images/night/NightSignal${m.cardId}.gif`;
+                
+                reviewItem.innerHTML = `
                     <div class="review-card-thumb-wrapper">
-                        <img class="signal-img" src="images/night/NightSignal${id}.gif" alt="Thumbnail">
+                        <img class="signal-img" src="${imgSrc}" alt="Thumbnail">
                     </div>
                     <div>
-                        <strong>Card #${id}</strong>
+                        <strong>${m.type === 'day' ? 'Day' : 'Night'} Signal #${m.cardId}</strong>
                         <p style="font-size: 0.82rem; color: var(--text-muted);">${card.identification}</p>
                     </div>
                 `;
-                resultsReviewList.appendChild(item);
+                resultsReviewList.appendChild(reviewItem);
             });
         } else {
             resultsReviewSection.classList.add('hidden');
