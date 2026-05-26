@@ -86,10 +86,10 @@ window.addEventListener('DOMContentLoaded', () => {
 // Fetch parsed JSON card data
 async function fetchCardsData() {
     try {
-        const response = await fetch('cards.json');
+        const response = await fetch('cards.json?v=' + Date.now());
         if (!response.ok) throw new Error('Failed to load card data');
         cardsData = await response.json();
-        console.log(`Loaded ${Object.keys(cardsData).length} cards.`);
+        console.log(`Loaded cards.`);
     } catch (error) {
         console.error('Error fetching cards:', error);
         alert('Could not load card details. Please ensure the server is running.');

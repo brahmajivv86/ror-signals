@@ -1863,7 +1863,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from starboard side"
+      "seen_from": "seen end on"
     },
     "192": {
       "identification": "Dredger / uwo less than 50 m. R.A.M. with obstruction on port side making way seen end on.",
@@ -1872,7 +1872,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen end on"
     },
     "181": {
       "identification": "P.D. v/I towing underway R.A.M. seen from astern.",
@@ -1917,7 +1917,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen from starboard side"
     },
     "198": {
       "identification": "Dredger / uwo probably 50 m. or more R.A.M. with obstruction on stbd side making way seen end on.",
@@ -1926,7 +1926,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from starboard side"
+      "seen_from": "seen end on"
     },
     "199": {
       "identification": "Dredger / uwo probably 50 m. or more R.A.M. with obstruction on port side making way seen from stbd side.",
@@ -1935,7 +1935,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen from starboard side"
     },
     "200": {
       "identification": "Dredger / uwo probably 50 m. or more R.A.M. with obstruction on port side making way seen end on.",
@@ -1944,7 +1944,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen end on"
     },
     "197": {
       "identification": "Dredger / uwo probably 50 m. or more R.A.M. with obstruction on port side making way seen end on.",
@@ -1953,7 +1953,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen end on"
     },
     "204": {
       "identification": "Dredger R.A.M. with obstruction on port side making way seen from astern.",
@@ -1962,7 +1962,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen from astern"
     },
     "201": {
       "identification": "Dredger / uwo probably 50 m. more R.A.M. with obstruction on stbd side making way seen from port side.",
@@ -1989,7 +1989,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from starboard side"
+      "seen_from": "seen from astern"
     },
     "208": {
       "identification": "a) v/I R.A.M. or dredger / uwo without obstruction underway but stopped. b) Small v/I engaged in diving operations.",
@@ -2007,7 +2007,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from starboard side"
+      "seen_from": "seen from astern"
     },
     "206": {
       "identification": "Dredger / uwo R.A.M. with obstruction on port side making way seen from astern.",
@@ -2016,7 +2016,7 @@
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Power-Driven Vessel (P/D Vsl)",
       "maneuvering_status": "Dredging / Obstruction operations",
-      "seen_from": "seen from port side"
+      "seen_from": "seen from astern"
     },
     "207": {
       "identification": "Dredger / uwo R.A.M. with obstruction underway but stopped or at anchor.",
