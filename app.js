@@ -86,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // Fetch parsed JSON card data
 async function fetchCardsData() {
     try {
-        const response = await fetch('/cards.json');
+        const response = await fetch('cards.json');
         if (!response.ok) throw new Error('Failed to load card data');
         cardsData = await response.json();
         console.log(`Loaded ${Object.keys(cardsData).length} cards.`);
@@ -299,7 +299,7 @@ function loadTrainerCard() {
     const card = cardsData[item.cardId];
 
     // Set Front Side Image
-    trainerImg.src = `/images/night/NightSignal${item.cardId}.gif`;
+    trainerImg.src = `images/night/NightSignal${item.cardId}.gif`;
     trainerImg.alt = `R.O.R. Night Signal Card #${item.cardId}`;
     
     // Fallback if image doesn't exist
@@ -419,13 +419,13 @@ function loadQuizQuestion() {
 
     // Configure static view options (images, labels, badges)
     if (item.type === 'night') {
-        quizQuestionImg.src = `/images/night/NightSignal${item.cardId}.gif`;
+        quizQuestionImg.src = `images/night/NightSignal${item.cardId}.gif`;
         quizQuestionImg.alt = `Quiz Night Signal Card #${item.cardId}`;
         quizCardNumberLabel.textContent = `Signal #${item.cardId}`;
         quizQuestionTypeBadge.textContent = 'Night Signal';
         quizQuestionTypeBadge.className = 'badge badge-teal';
     } else {
-        quizQuestionImg.src = `/images/day/DayImage${item.cardId}.gif`;
+        quizQuestionImg.src = `images/day/DayImage${item.cardId}.gif`;
         quizQuestionImg.alt = `Quiz Day Signal Card #${item.cardId}`;
         quizCardNumberLabel.textContent = `Signal #${item.cardId}`;
         quizQuestionTypeBadge.textContent = 'Day Shape';
@@ -631,7 +631,7 @@ function showResults() {
                 
                 item.innerHTML = `
                     <div class="review-card-thumb-wrapper">
-                        <img class="signal-img" src="/images/night/NightSignal${id}.gif" alt="Thumbnail">
+                        <img class="signal-img" src="images/night/NightSignal${id}.gif" alt="Thumbnail">
                     </div>
                     <div>
                         <strong>Card #${id}</strong>
