@@ -126,18 +126,14 @@ function setupEventListeners() {
         selectedCategory = 'iala';
         btnCatIala.classList.add('active');
         btnCatColregs.classList.remove('active');
-        
-        // Force Trainer Mode
-        sessionMode = 'trainer';
-        btnModeTrainer.classList.add('active');
-        btnModeQuiz.classList.remove('active');
-        groupTrainerOptions.classList.remove('hidden');
-        groupQuizOptions.classList.add('hidden');
-        
-        // Disable quiz mode button
-        btnModeQuiz.disabled = true;
-        btnModeQuiz.style.opacity = '0.4';
-        btnModeQuiz.style.pointerEvents = 'none';
+
+        // Enable quiz mode button for IALA category
+        btnModeQuiz.disabled = false;
+        btnModeQuiz.style.opacity = '';
+        btnModeQuiz.style.pointerEvents = '';
+
+        // Keep current session mode (trainer or quiz) as selected by user
+        // No longer force trainer mode or disable quiz button
     });
 
     // Mode toggles in startup menu
@@ -228,7 +224,7 @@ function startSession() {
     missedCards = [];
 
     if (selectedCategory === 'iala') {
-        // IALA only has Trainer mode (pages 1 to 10 scanned double-sided, so 5 cards)
+        // Build IALA card queue (front/back images)
         for (let i = 1; i <= 5; i++) {
             currentQueue.push({
                 cardId: i.toString(),
@@ -240,12 +236,20 @@ function startSession() {
         if (trainerOrder === 'shuffle') {
             shuffleArray(currentQueue);
         }
-        
-        sessionModeBadge.textContent = 'IALA Trainer';
-        sessionModeBadge.className = 'badge badge-teal';
-        
-        showView('trainer');
-        loadTrainerCard();
+
+        // Set badge based on the chosen mode
+        if (sessionMode === 'trainer') {
+            sessionModeBadge.textContent = 'IALA Trainer';
+            sessionModeBadge.className = 'badge badge-teal';
+            showView('trainer');
+            loadTrainerCard();
+        } else {
+            // For Quiz mode, use the same trainer view as a placeholder
+            sessionModeBadge.textContent = 'IALA Quiz';
+            sessionModeBadge.className = 'badge';
+            showView('trainer');
+            loadTrainerCard();
+        }
     } else {
         // COLREGs Signals category
         const allCardIds = Object.keys(cardsData.night || {}).sort((a, b) => parseInt(a) - parseInt(b));
