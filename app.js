@@ -4,11 +4,14 @@ let sessionMode = 'trainer'; // 'trainer' | 'quiz'
 let trainerOrder = 'direct'; // 'direct' | 'shuffle'
 let quizIncludeDay = true;
 let quizQuestionCount = '20';
-let currentQueue = []; // Holds items: { cardId: string, type: 'night' | 'day' }
+let currentQueue = []; // Holds items: { cardId: string, type: 'night' | 'day' | 'iala' }
 let currentIndex = 0;
 let quizScore = 0;
 let quizAnswers = []; // { cardId, type, correct }
 let missedCards = []; // List of missed cardIds
+let selectedCategory = 'colregs'; // 'colregs' | 'iala'
+let trainerRotation = 0;
+let quizRotation = 0;
 
 // Step-wise Quiz state
 let quizCurrentStep = 1; // 1 | 2 | 3
@@ -23,6 +26,15 @@ const sessionModeBadge = document.getElementById('session-mode-badge');
 const progressBarFill = document.getElementById('progress-bar-fill');
 const progressText = document.getElementById('progress-text');
 const progressPercent = document.getElementById('progress-percent');
+
+// Category & Rotate Elements
+const btnCatColregs = document.getElementById('btn-cat-colregs');
+const btnCatIala = document.getElementById('btn-cat-iala');
+const btnTrainerRotate = document.getElementById('btn-trainer-rotate');
+const btnQuizRotate = document.getElementById('btn-quiz-rotate');
+const trainerBackImageWrapper = document.getElementById('trainer-back-image-wrapper');
+const trainerBackImg = document.getElementById('trainer-back-img');
+const trainerBackScroll = document.getElementById('trainer-back-scroll');
 
 // Startup Menu Controls
 const btnModeTrainer = document.getElementById('btn-mode-trainer');
@@ -98,6 +110,36 @@ async function fetchCardsData() {
 
 // Setup all event listeners
 function setupEventListeners() {
+    // Category toggles
+    btnCatColregs.addEventListener('click', () => {
+        selectedCategory = 'colregs';
+        btnCatColregs.classList.add('active');
+        btnCatIala.classList.remove('active');
+        
+        // Re-enable quiz mode button
+        btnModeQuiz.disabled = false;
+        btnModeQuiz.style.opacity = '';
+        btnModeQuiz.style.pointerEvents = '';
+    });
+
+    btnCatIala.addEventListener('click', () => {
+        selectedCategory = 'iala';
+        btnCatIala.classList.add('active');
+        btnCatColregs.classList.remove('active');
+        
+        // Force Trainer Mode
+        sessionMode = 'trainer';
+        btnModeTrainer.classList.add('active');
+        btnModeQuiz.classList.remove('active');
+        groupTrainerOptions.classList.remove('hidden');
+        groupQuizOptions.classList.add('hidden');
+        
+        // Disable quiz mode button
+        btnModeQuiz.disabled = true;
+        btnModeQuiz.style.opacity = '0.4';
+        btnModeQuiz.style.pointerEvents = 'none';
+    });
+
     // Mode toggles in startup menu
     btnModeTrainer.addEventListener('click', () => {
         sessionMode = 'trainer';
@@ -105,14 +147,6 @@ function setupEventListeners() {
         btnModeQuiz.classList.remove('active');
         groupTrainerOptions.classList.remove('hidden');
         groupQuizOptions.classList.add('hidden');
-    });
-
-    btnModeQuiz.addEventListener('click', () => {
-        sessionMode = 'quiz';
-        btnModeQuiz.classList.add('active');
-        btnModeTrainer.classList.remove('active');
-        groupQuizOptions.classList.remove('hidden');
-        groupTrainerOptions.classList.add('hidden');
     });
 
     // Start Session
@@ -130,6 +164,11 @@ function setupEventListeners() {
     });
     btnTrainerPrev.addEventListener('click', () => navigateTrainer(-1));
     btnTrainerNext.addEventListener('click', () => navigateTrainer(1));
+    btnTrainerRotate.addEventListener('click', (e) => {
+        e.stopPropagation();
+        trainerRotation = (trainerRotation + 90) % 360;
+        applyTrainerRotation();
+    });
 
     // Keyboard navigation in Trainer Mode
     document.addEventListener('keydown', (e) => {
@@ -147,6 +186,11 @@ function setupEventListeners() {
     });
 
     // Quiz actions
+    btnQuizRotate.addEventListener('click', (e) => {
+        e.stopPropagation();
+        quizRotation = (quizRotation + 90) % 360;
+        applyQuizRotation();
+    });
     btnQuizContinue.addEventListener('click', loadNextQuizQuestion);
     btnResultsRetry.addEventListener('click', restartSession);
 }
@@ -177,76 +221,98 @@ function startSession() {
     quizIncludeDay = quizToggleDay.checked;
     quizQuestionCount = quizQuestionCountSelect.value;
 
-    const allCardIds = Object.keys(cardsData.night).sort((a, b) => parseInt(a) - parseInt(b));
-    if (allCardIds.length === 0) {
-        alert('Card data is empty. Please run extract_and_reclassify.py.');
-        return;
-    }
-
     currentQueue = [];
     currentIndex = 0;
     quizScore = 0;
     quizAnswers = [];
     missedCards = [];
 
-    if (sessionMode === 'trainer') {
-        // First add all night signals
-        allCardIds.forEach(id => {
-            currentQueue.push({ cardId: id, type: 'night' });
-        });
-        
-        // Then add all day signals (cards 1-30)
-        allCardIds.forEach(id => {
-            const num = parseInt(id);
-            if (num <= 30) {
-                if (cardsData.day[id]) {
-                    currentQueue.push({ cardId: id, type: 'day' });
-                }
-            }
-        });
-        
+    if (selectedCategory === 'iala') {
+        // IALA only has Trainer mode (pages 1 to 10 scanned double-sided, so 5 cards)
+        for (let i = 1; i <= 5; i++) {
+            currentQueue.push({
+                cardId: i.toString(),
+                type: 'iala',
+                front: `images/iala/page_${(i * 2) - 1}.jpg`,
+                back: `images/iala/page_${i * 2}.jpg`
+            });
+        }
         if (trainerOrder === 'shuffle') {
             shuffleArray(currentQueue);
         }
         
-        sessionModeBadge.textContent = 'Trainer Mode';
+        sessionModeBadge.textContent = 'IALA Trainer';
         sessionModeBadge.className = 'badge badge-teal';
         
         showView('trainer');
         loadTrainerCard();
     } else {
-        // Quiz mode: Assemble pool of questions
-        let questionPool = [];
-        
-        allCardIds.forEach(id => {
-            // Add night signal
-            questionPool.push({ cardId: id, type: 'night' });
-            
-            // Add day signal if requested and day shape exists (cards 1-30)
-            const num = parseInt(id);
-            if (quizIncludeDay && num <= 30) {
-                if (cardsData.day[id]) {
-                    questionPool.push({ cardId: id, type: 'day' });
-                }
-            }
-        });
-        
-        // Shuffle the entire pool
-        shuffleArray(questionPool);
-        
-        // Slice to requested size
-        if (quizQuestionCount !== 'all') {
-            const count = parseInt(quizQuestionCount);
-            currentQueue = questionPool.slice(0, Math.min(count, questionPool.length));
-        } else {
-            currentQueue = questionPool;
+        // COLREGs Signals category
+        const allCardIds = Object.keys(cardsData.night || {}).sort((a, b) => parseInt(a) - parseInt(b));
+        if (allCardIds.length === 0) {
+            alert('Card data is empty. Please run extract_and_reclassify.py.');
+            return;
         }
 
-        sessionModeBadge.textContent = 'Quiz Mode';
-        sessionModeBadge.className = 'badge';
-        
-        showView('quiz');
-        loadQuizQuestion();
+        if (sessionMode === 'trainer') {
+            // First add all night signals
+            allCardIds.forEach(id => {
+                currentQueue.push({ cardId: id, type: 'night' });
+            });
+            
+            // Then add all day signals (cards 1-30)
+            allCardIds.forEach(id => {
+                const num = parseInt(id);
+                if (num <= 30) {
+                    if (cardsData.day[id]) {
+                        currentQueue.push({ cardId: id, type: 'day' });
+                    }
+                }
+            });
+            
+            if (trainerOrder === 'shuffle') {
+                shuffleArray(currentQueue);
+            }
+            
+            sessionModeBadge.textContent = 'Trainer Mode';
+            sessionModeBadge.className = 'badge badge-teal';
+            
+            showView('trainer');
+            loadTrainerCard();
+        } else {
+            // Quiz mode: Assemble pool of questions
+            let questionPool = [];
+            
+            allCardIds.forEach(id => {
+                // Add night signal
+                questionPool.push({ cardId: id, type: 'night' });
+                
+                // Add day signal if requested and day shape exists (cards 1-30)
+                const num = parseInt(id);
+                if (quizIncludeDay && num <= 30) {
+                    if (cardsData.day[id]) {
+                        questionPool.push({ cardId: id, type: 'day' });
+                    }
+                }
+            });
+            
+            // Shuffle the entire pool
+            shuffleArray(questionPool);
+            
+            // Slice to requested size
+            if (quizQuestionCount !== 'all') {
+                const count = parseInt(quizQuestionCount);
+                currentQueue = questionPool.slice(0, Math.min(count, questionPool.length));
+            } else {
+                currentQueue = questionPool;
+            }
+
+            sessionModeBadge.textContent = 'Quiz Mode';
+            sessionModeBadge.className = 'badge';
+            
+            showView('quiz');
+            loadQuizQuestion();
+        }
     }
 
     // Show app interface
@@ -303,42 +369,72 @@ function loadTrainerCard() {
     
     if (currentQueue.length === 0 || currentIndex >= currentQueue.length) return;
     
-    const item = currentQueue[currentIndex];
-    const isDay = item.type === 'day';
-    const card = cardsData[item.type][item.cardId];
+    // Reset rotation when loading new card
+    trainerRotation = 0;
+    applyTrainerRotation();
 
-    // Set Front Side Image and Label based on signal type
-    if (isDay) {
-        trainerImg.src = `images/day/DayImage${item.cardId}.gif`;
-        trainerImg.alt = `R.O.R. Day Signal Card #${item.cardId}`;
-        trainerCardLabel.textContent = `Day Signal #${item.cardId}`;
+    const item = currentQueue[currentIndex];
+    const isIala = item.type === 'iala';
+    const isDay = item.type === 'day';
+
+    if (isIala) {
+        // Set up IALA card
+        trainerImg.src = item.front;
+        trainerImg.alt = `IALA Card Front #${item.cardId}`;
+        trainerCardLabel.textContent = `IALA Card #${item.cardId}`;
+        
+        trainerBackImg.src = item.back;
+        trainerBackImg.alt = `IALA Card Back #${item.cardId}`;
+
+        // Toggle back wrappers
+        trainerBackScroll.classList.add('hidden');
+        trainerBackImageWrapper.classList.remove('hidden');
     } else {
-        trainerImg.src = `images/night/NightSignal${item.cardId}.gif`;
-        trainerImg.alt = `R.O.R. Night Signal Card #${item.cardId}`;
-        trainerCardLabel.textContent = `Night Signal #${item.cardId}`;
+        // COLREGs card
+        const card = cardsData[item.type][item.cardId];
+
+        // Toggle back wrappers
+        trainerBackImageWrapper.classList.add('hidden');
+        trainerBackScroll.classList.remove('hidden');
+
+        // Set Front Side Image and Label based on signal type
+        if (isDay) {
+            trainerImg.src = `images/day/DayImage${item.cardId}.gif`;
+            trainerImg.alt = `R.O.R. Day Signal Card #${item.cardId}`;
+            trainerCardLabel.textContent = `Day Signal #${item.cardId}`;
+        } else {
+            trainerImg.src = `images/night/NightSignal${item.cardId}.gif`;
+            trainerImg.alt = `R.O.R. Night Signal Card #${item.cardId}`;
+            trainerCardLabel.textContent = `Night Signal #${item.cardId}`;
+        }
+
+        // Populate Back Info Panel
+        trainerBackTitle.textContent = `Signal Reference Details (${isDay ? 'Day' : 'Night'} Card #${item.cardId})`;
+        trainerInfoIdent.textContent = (card && card.identification) || 'No identification text.';
+        trainerInfoAction.textContent = (card && card.action) || 'No action specified.';
+        trainerInfoDay.textContent = isDay ? ((card && card.lights_displayed) || 'No lights specified.') : ((card && card.day_signal) || 'No day signal shape.');
+        trainerInfoFog.textContent = (card && card.fog_signal) || 'No fog signal.';
+
+        // Update label & icon for the third field
+        const dayLabel = trainerInfoDay.previousElementSibling.querySelector('span');
+        const dayIcon = trainerInfoDay.previousElementSibling.querySelector('i');
+        if (isDay) {
+            if (dayLabel) dayLabel.textContent = "Lights Displayed at Night";
+            if (dayIcon) dayIcon.className = "fa-solid fa-moon";
+        } else {
+            if (dayLabel) dayLabel.textContent = "Day Signal";
+            if (dayIcon) dayIcon.className = "fa-solid fa-sun";
+        }
     }
     
     // Fallback if image doesn't exist
     trainerImg.onerror = () => {
         trainerImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
     };
-
-    // Populate Back Info Panel
-    trainerBackTitle.textContent = `Signal Reference Details (${isDay ? 'Day' : 'Night'} Card #${item.cardId})`;
-    trainerInfoIdent.textContent = card.identification || 'No identification text.';
-    trainerInfoAction.textContent = card.action || 'No action specified.';
-    trainerInfoDay.textContent = isDay ? (card.lights_displayed || 'No lights specified.') : (card.day_signal || 'No day signal shape.');
-    trainerInfoFog.textContent = card.fog_signal || 'No fog signal.';
-
-    // Update label & icon for the third field
-    const dayLabel = trainerInfoDay.previousElementSibling.querySelector('span');
-    const dayIcon = trainerInfoDay.previousElementSibling.querySelector('i');
-    if (isDay) {
-        if (dayLabel) dayLabel.textContent = "Lights Displayed at Night";
-        if (dayIcon) dayIcon.className = "fa-solid fa-moon";
-    } else {
-        if (dayLabel) dayLabel.textContent = "Day Signal";
-        if (dayIcon) dayIcon.className = "fa-solid fa-sun";
+    if (isIala) {
+        trainerBackImg.onerror = () => {
+            trainerBackImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
+        };
     }
 
     // Manage Prev/Next states (always enabled to support wrapping loop)
@@ -348,6 +444,9 @@ function loadTrainerCard() {
 
 function toggleCardFlip() {
     flashcard.classList.toggle('flipped');
+    // Reset rotation when flipping
+    trainerRotation = 0;
+    applyTrainerRotation();
 }
 
 function navigateTrainer(direction) {
@@ -405,6 +504,10 @@ const seenFromList = [
 ];
 
 function loadQuizQuestion() {
+    // Reset rotation
+    quizRotation = 0;
+    applyQuizRotation();
+
     // Hide feedback panel
     quizFeedbackPanel.classList.add('hidden');
     quizOptionsContainer.innerHTML = '';
@@ -687,4 +790,13 @@ function showResults() {
         circularProgress.style.background = `conic-gradient(var(--accent) 360deg, rgba(255,255,255,0.05) 0deg)`;
         resultsReviewSection.classList.add('hidden');
     }
+}
+
+function applyTrainerRotation() {
+    trainerImg.style.transform = `rotate(${trainerRotation}deg)`;
+    trainerBackImg.style.transform = `rotate(${trainerRotation}deg)`;
+}
+
+function applyQuizRotation() {
+    quizQuestionImg.style.transform = `rotate(${quizRotation}deg)`;
 }

@@ -66,7 +66,7 @@
                         
                         <!-- Back of Card: Answer Text -->
                         <div class="card-side card-back">
-                            <div class="card-back-scroll">
+                            <div id="trainer-back-scroll" class="card-back-scroll">
                                 <h3 id="trainer-back-title" class="card-back-title">Power Driven Vessel</h3>
                                 
                                 <div class="info-grid">
@@ -103,6 +103,10 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Image for IALA back -->
+                            <div id="trainer-back-image-wrapper" class="card-image-wrapper hidden">
+                                <img id="trainer-back-img" class="signal-img" src="" alt="Signal explanation display">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -114,6 +118,9 @@
                     </button>
                     <button id="btn-trainer-flip" class="btn btn-accent">
                         <i class="fa-solid fa-rotate"></i> Flip Card
+                    </button>
+                    <button id="btn-trainer-rotate" class="btn btn-secondary" title="Rotate image">
+                        <i class="fa-solid fa-rotate-right"></i> Rotate
                     </button>
                     <button id="btn-trainer-next" class="btn btn-primary">
                         Next <i class="fa-solid fa-arrow-right"></i>
@@ -132,6 +139,9 @@
                         <div class="quiz-meta-row">
                             <span id="quiz-card-number-label" class="card-id-label">Night Signal #15</span>
                             <span id="quiz-question-type-badge" class="badge badge-teal">Night Signal</span>
+                            <button id="btn-quiz-rotate" class="btn-icon-text text-btn" title="Rotate image">
+                                <i class="fa-solid fa-rotate-right"></i> <span>Rotate</span>
+                            </button>
                         </div>
                     </div>
 
@@ -258,6 +268,27 @@
             </div>
 
             <div class="settings-form">
+                <!-- Select Category -->
+                <div class="form-group">
+                    <label class="section-label">Select Category</label>
+                    <div class="toggle-buttons-group">
+                        <button type="button" id="btn-cat-colregs" class="toggle-btn active">
+                            <i class="fa-solid fa-anchor"></i>
+                            <div>
+                                <strong>COLREGs Signals</strong>
+                                <span>Day & Night Collision Regulation Signals.</span>
+                            </div>
+                        </button>
+                        <button type="button" id="btn-cat-iala" class="toggle-btn">
+                            <i class="fa-solid fa-circle-nodes"></i>
+                            <div>
+                                <strong>IALA Buoyage System</strong>
+                                <span>Lateral, Cardinal, Safe Water, and Special Buoys (Pages 1–10).</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Choose Mode -->
                 <div class="form-group">
                     <label class="section-label">Select Learning Mode</label>
