@@ -10,6 +10,7 @@ let quizScore = 0;
 let quizAnswers = []; // { cardId, type, correct }
 let missedCards = []; // List of missed cardIds
 let selectedCategory = 'night'; // 'day' | 'night' | 'iala'
+let activeView = 'menu'; // 'menu' | 'trainer' | 'quiz' | 'results'
 
 // Step-wise Quiz state
 let quizCurrentStep = 1; // 1 | 2 | 3
@@ -100,6 +101,7 @@ async function fetchCardsData() {
         if (!response.ok) throw new Error('Failed to load card data');
         cardsData = await response.json();
         console.log(`Loaded cards.`);
+        loadSessionState();
     } catch (error) {
         console.error('Error fetching cards:', error);
         alert('Could not load card details. Please ensure the server is running.');
@@ -197,6 +199,7 @@ function setupEventListeners() {
 
 // Main Menu view trigger
 function showMainMenu() {
+    clearSessionState();
     appContainer.classList.add('hidden');
     startupModal.classList.remove('hidden');
     // Clean up active classes
@@ -327,6 +330,7 @@ function startSession() {
     startupModal.classList.add('hidden');
     appContainer.classList.remove('hidden');
     updateProgressBar();
+    saveSessionState();
 }
 
 function restartSession() {
@@ -347,13 +351,16 @@ function restartSession() {
         loadQuizQuestion();
     }
     updateProgressBar();
+    saveSessionState();
 }
 
 // Show specific view inside main container
 function showView(viewName) {
+    activeView = viewName;
     trainerView.classList.toggle('hidden', viewName !== 'trainer');
     quizView.classList.toggle('hidden', viewName !== 'quiz');
     resultsView.classList.toggle('hidden', viewName !== 'results');
+    saveSessionState();
 }
 
 // Update Header Progress Indicators
@@ -466,6 +473,7 @@ function navigateTrainer(direction) {
     
     loadTrainerCard();
     updateProgressBar();
+    saveSessionState();
 }
 
 /* ==========================================================================
@@ -756,6 +764,7 @@ function loadNextQuizQuestion() {
     if (currentIndex < currentQueue.length) {
         loadQuizQuestion();
         updateProgressBar();
+        saveSessionState();
     } else {
         showResults();
     }
@@ -916,5 +925,114 @@ function submitIalaGrade(isCorrect) {
         btnQuizContinue.innerHTML = `Finish & Score <i class="fa-solid fa-flag-checkered"></i>`;
     } else {
         btnQuizContinue.innerHTML = `Continue <i class="fa-solid fa-arrow-right"></i>`;
+    }
+}
+
+/* ==========================================================================
+   SESSION STATE PERSISTENCE LOGIC (Workaround for F5 / Network Breaks)
+   ========================================================================== */
+
+function getSessionBadgeText() {
+    if (selectedCategory === 'iala') {
+        return sessionMode === 'trainer' ? 'IALA Trainer' : 'IALA Quiz';
+    } else if (selectedCategory === 'day') {
+        return sessionMode === 'trainer' ? 'Day Trainer' : 'Day Quiz';
+    } else {
+        return sessionMode === 'trainer' ? 'Night Trainer' : 'Night Quiz';
+    }
+}
+
+function updateCategoryUI() {
+    btnCatDay.classList.toggle('active', selectedCategory === 'day');
+    btnCatNight.classList.toggle('active', selectedCategory === 'night');
+    btnCatIala.classList.toggle('active', selectedCategory === 'iala');
+}
+
+function saveSessionState() {
+    // Only persist if we are actually in a session (i.e. app is visible)
+    if (appContainer.classList.contains('hidden')) {
+        clearSessionState();
+        return;
+    }
+    const state = {
+        selectedCategory,
+        sessionMode,
+        trainerOrder,
+        currentQueue,
+        currentIndex,
+        quizScore,
+        quizAnswers,
+        missedCards,
+        quizCurrentStep,
+        quizCardFailed,
+        activeView
+    };
+    localStorage.setItem('ror_session_state', JSON.stringify(state));
+}
+
+function clearSessionState() {
+    localStorage.removeItem('ror_session_state');
+}
+
+function loadSessionState() {
+    const saved = localStorage.getItem('ror_session_state');
+    if (!saved) return false;
+    try {
+        const state = JSON.parse(saved);
+        selectedCategory = state.selectedCategory;
+        sessionMode = state.sessionMode;
+        trainerOrder = state.trainerOrder;
+        currentQueue = state.currentQueue;
+        currentIndex = state.currentIndex;
+        quizScore = state.quizScore;
+        quizAnswers = state.quizAnswers;
+        missedCards = state.missedCards;
+        quizCurrentStep = state.quizCurrentStep || 1;
+        quizCardFailed = state.quizCardFailed || false;
+        activeView = state.activeView;
+
+        // Restore category selection class active styles
+        updateCategoryUI();
+
+        // Restore active mode selection active state in startup modal
+        if (sessionMode === 'trainer') {
+            btnModeTrainer.classList.add('active');
+            btnModeQuiz.classList.remove('active');
+            groupTrainerOptions.classList.remove('hidden');
+            groupQuizOptions.classList.add('hidden');
+        } else {
+            btnModeQuiz.classList.add('active');
+            btnModeTrainer.classList.remove('active');
+            groupQuizOptions.classList.remove('hidden');
+            groupTrainerOptions.classList.add('hidden');
+        }
+
+        // Restore view and load contents
+        if (activeView === 'trainer') {
+            sessionModeBadge.textContent = getSessionBadgeText();
+            sessionModeBadge.className = sessionMode === 'trainer' ? 'badge badge-teal' : 'badge';
+            showView('trainer');
+            loadTrainerCard();
+            startupModal.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+            updateProgressBar();
+        } else if (activeView === 'quiz') {
+            sessionModeBadge.textContent = getSessionBadgeText();
+            sessionModeBadge.className = 'badge';
+            showView('quiz');
+            loadQuizQuestion();
+            startupModal.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+            updateProgressBar();
+        } else if (activeView === 'results') {
+            showResults();
+            startupModal.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+        }
+        return true;
+    } catch (e) {
+        console.error("Failed to restore session state:", e);
+        clearSessionState();
+        return false;
     }
 }
