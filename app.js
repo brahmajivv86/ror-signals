@@ -92,6 +92,7 @@ const btnResultsHome = document.getElementById('btn-results-home');
 window.addEventListener('DOMContentLoaded', () => {
     fetchCardsData();
     setupEventListeners();
+    updatePdfLinks();
 });
 
 // Fetch parsed JSON card data
@@ -120,6 +121,7 @@ function setupEventListeners() {
         btnModeQuiz.disabled = false;
         btnModeQuiz.style.opacity = '';
         btnModeQuiz.style.pointerEvents = '';
+        updatePdfLinks();
     });
 
     btnCatNight.addEventListener('click', () => {
@@ -131,6 +133,7 @@ function setupEventListeners() {
         btnModeQuiz.disabled = false;
         btnModeQuiz.style.opacity = '';
         btnModeQuiz.style.pointerEvents = '';
+        updatePdfLinks();
     });
 
     btnCatIala.addEventListener('click', () => {
@@ -142,6 +145,7 @@ function setupEventListeners() {
         btnModeQuiz.disabled = false;
         btnModeQuiz.style.opacity = '';
         btnModeQuiz.style.pointerEvents = '';
+        updatePdfLinks();
     });
 
     // Mode toggles in startup menu
@@ -439,13 +443,19 @@ function loadTrainerCard() {
         }
     }
     
+    // Reset onerror handlers to prevent race conditions from previously aborted image loads
+    trainerImg.onerror = null;
+    
     // Fallback if image doesn't exist
-    trainerImg.onerror = () => {
-        trainerImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
+    trainerImg.onerror = function() {
+        this.onerror = null; // Prevent infinite loops
+        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
     };
     if (isIala) {
-        trainerBackImg.onerror = () => {
-            trainerBackImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
+        trainerBackImg.onerror = null;
+        trainerBackImg.onerror = function() {
+            this.onerror = null; // Prevent infinite loops
+            this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
         };
     }
 
@@ -590,8 +600,10 @@ function loadQuizQuestion() {
         quizQuestionTypeBadge.className = 'badge';
     }
 
-    quizQuestionImg.onerror = () => {
-        quizQuestionImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
+    quizQuestionImg.onerror = null;
+    quizQuestionImg.onerror = function() {
+        this.onerror = null; // Prevent infinite loops
+        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="284" height="180" viewBox="0 0 284 180"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555" font-family="sans-serif" font-size="14">Image Missing</text></svg>';
     };
 
     // Load first step
@@ -993,6 +1005,7 @@ function loadSessionState() {
 
         // Restore category selection class active styles
         updateCategoryUI();
+        updatePdfLinks();
 
         // Restore active mode selection active state in startup modal
         if (sessionMode === 'trainer') {
@@ -1035,4 +1048,25 @@ function loadSessionState() {
         clearSessionState();
         return false;
     }
+}
+
+function updatePdfLinks() {
+    const pdfLinkStartup = document.getElementById('pdf-link-startup');
+    const pdfLinkMain = document.getElementById('pdf-link-main');
+    
+    let pdfUrl = '';
+    let pdfLabel = '';
+    
+    if (selectedCategory === 'iala') {
+        pdfUrl = 'https://github.com/brahmajivv86/ror-signals/blob/main/origin/IALA%20Cards.pdf';
+        pdfLabel = 'Download original IALA Cards PDF';
+    } else {
+        pdfUrl = 'https://github.com/brahmajivv86/ror-signals/blob/main/origin/IRPCS%20Cards.pdf';
+        pdfLabel = 'Download original IRPCS Cards PDF';
+    }
+    
+    const linkHtml = `<a href="${pdfUrl}" target="_blank" class="pdf-download-link"><i class="fa-solid fa-file-pdf"></i> ${pdfLabel}</a>`;
+    
+    if (pdfLinkStartup) pdfLinkStartup.innerHTML = linkHtml;
+    if (pdfLinkMain) pdfLinkMain.innerHTML = linkHtml;
 }

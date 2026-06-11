@@ -178,11 +178,12 @@ body {
 .logo-title {
     font-family: var(--font-outfit);
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     letter-spacing: -0.02em;
     background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    line-height: 1.2;
 }
 
 .header-stats {
@@ -832,8 +833,10 @@ body {
     backdrop-filter: blur(10px);
     z-index: 100;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    overflow-y: auto;
+    padding: 2rem 0;
 }
 
 .modal-box {
@@ -1140,6 +1143,10 @@ input:checked + .slider:before {
     .radio-buttons-group {
         grid-template-columns: 1fr;
     }
+    
+    .logo-title {
+        font-size: 0.9rem;
+    }
 }
 
 /* Disclaimer footnote styling */
@@ -1152,4 +1159,41 @@ input:checked + .slider:before {
     padding-top: 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     font-style: italic;
+}
+
+.pdf-link-container {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: center;
+}
+
+.pdf-download-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    background: rgba(6, 182, 212, 0.06);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    transition: var(--transition-fast);
+    font-style: normal;
+    font-family: var(--font-outfit);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.pdf-download-link i {
+    font-size: 0.85rem;
+}
+
+.pdf-download-link:hover {
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(6, 182, 212, 0.35);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
 }

@@ -390,13 +390,13 @@
       "seen_from": "seen from astern"
     },
     "18": {
-      "identification": "P.D. v/I towing less than 50 m underway tow 200 m. or less from port side.",
+      "identification": "P.D. v/I towing less than 50 m underway tow 200 m. or less from stbd side.",
       "action": "Maintain course and spee.",
       "day_signal": "No day signal.",
       "fog_signal": "One prolonged and two short blasts.",
       "type_of_vessel": "Towing / Pushing Vessel (Tow)",
       "maneuvering_status": "Underway (Towing / Pushing)",
-      "seen_from": "seen from port side"
+      "seen_from": "seen from starboard side"
     },
     "19": {
       "identification": "P.D. v/I towing underway seen end on - a) less than 50 m, tow exceeds 200 m. b) probably 50 m or more, tow 200 m or less.",
