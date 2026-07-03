@@ -2,7 +2,9 @@
 
 A premium, interactive web application designed to help seafarers master the **Rules of the Road (COLREGs)** day/night collision regulations and the **IALA Buoyage System**. This app helps you prepare for maritime competency examinations by providing both structured study aids and randomized self-assessment quizzes.
 
-👉 **Repository Link:** [https://github.com/brahmajivv86/COLREGS_IALA_Flashcard_Trainer](https://github.com/brahmajivv86/COLREGS_IALA_Flashcard_Trainer)
+👉 **Live Trainer App:** [https://brahmajivv86.github.io/COLREGS_IALA_Flashcard_Trainer/](https://brahmajivv86.github.io/COLREGS_IALA_Flashcard_Trainer/)
+
+💻 **Repository Code:** [https://github.com/brahmajivv86/COLREGS_IALA_Flashcard_Trainer](https://github.com/brahmajivv86/COLREGS_IALA_Flashcard_Trainer)
 
 ---
 
