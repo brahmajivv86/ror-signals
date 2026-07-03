@@ -1,8 +1,8 @@
-# R.O.R. & IALA Signals Quiz & Trainer
+# COLREGs & IALA Signals Quiz & Trainer
 
-A premium, interactive web application designed to help seafarers master the **Rules of the Road (R.O.R.)** day/night collision regulations and the **IALA Buoyage System**. This app helps you prepare for maritime competency examinations by providing both structured study aids and randomized self-assessment quizzes.
+A premium, interactive web application designed to help seafarers master the **Rules of the Road (COLREGs)** day/night collision regulations and the **IALA Buoyage System**. This app helps you prepare for maritime competency examinations by providing both structured study aids and randomized self-assessment quizzes.
 
-👉 **Repository Link:** [https://github.com/brahmajivv86/ror-signals](https://github.com/brahmajivv86/ror-signals)
+👉 **Repository Link:** [https://github.com/brahmajivv86/COLREGS_IALA_Flashcard_Trainer](https://github.com/brahmajivv86/COLREGS_IALA_Flashcard_Trainer)
 
 ---
 

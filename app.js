@@ -416,11 +416,11 @@ function loadTrainerCard() {
         // Set Front Side Image and Label based on signal type
         if (isDay) {
             trainerImg.src = `images/day/DayImage${item.cardId}.gif`;
-            trainerImg.alt = `R.O.R. Day Signal Card #${item.cardId}`;
+            trainerImg.alt = `COLREGs Day Signal Card #${item.cardId}`;
             trainerCardLabel.textContent = `Day Signal #${item.cardId}`;
         } else {
             trainerImg.src = `images/night/NightSignal${item.cardId}.gif`;
-            trainerImg.alt = `R.O.R. Night Signal Card #${item.cardId}`;
+            trainerImg.alt = `COLREGs Night Signal Card #${item.cardId}`;
             trainerCardLabel.textContent = `Night Signal #${item.cardId}`;
         }
 
